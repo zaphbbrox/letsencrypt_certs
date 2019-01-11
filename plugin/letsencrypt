@@ -1,0 +1,73 @@
+#!/usr/bin/python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +------------------------------------------------------------------+
+# |             ____ _               _        __  __ _  __           |
+# |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
+# |           | |   | '_ \ / _ \/ __| |/ /   | |\/| | ' /            |
+# |           | |___| | | |  __/ (__|   <    | |  | | . \            |
+# |            \____|_| |_|\___|\___|_|\_\___|_|  |_|_|\_\           |
+# |                                                                  |
+# | Copyright Mathias Kettner 2014             mk@mathias-kettner.de |
+# +------------------------------------------------------------------+
+#
+# This file is part of Check_MK.
+# The official homepage is at http://mathias-kettner.de/check_mk.
+#
+# check_mk is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+
+# example output
+
+factory_settings["letsencrypt_default_levels"] = {
+        "long"  : 1,
+        "short" : 2,
+                }
+
+def inventory_letsencrypt(info):
+    for l in info:
+        service_identify = "%s" %(l[0].split(' ')[0])
+        yield service_identify, {}
+
+
+def check_letsencrypt(item, params, info):
+    for line in info:
+        for l in line:
+            if l.split(' ')[0] == item:
+                parsed = l.split(' ')[1]
+                if "EXPIRED" not in parsed:
+                    if ( int(parsed) <= 15 ):
+                        text = "Less then 15 days ( %s days ) remaining, before the certificate becomes invalid." % parsed 
+                        state = params["short"]
+                        yield state, text
+                    elif ( int(parsed) <= 30 ):
+                        text = "Less then 30 days ( %s days ) remaining, before the certificate becomes invalid." % parsed 
+                        state = params["long"]
+                        yield state, text
+                    else:
+                        text = "Still enough time ( %s days remaining )." % parsed
+                        yield 0, text
+                else:
+                    if parsed == 'EXPIRED)':
+                        text = "The cert has been expired! Please consider a renewal or delete the certificate."
+                        yield 2, text
+            else:
+                break
+
+check_info['letsencrypt'] = {
+    "inventory_function"      : inventory_letsencrypt,
+    "check_function"          : check_letsencrypt,
+    "service_description"     : "Let's Encrypt cert",
+    "group"                   : "letsencrypt",
+    "has_perfdata"            : False,
+    "default_levels_variable" : "letsencrypt_default_levels",
+}
+
