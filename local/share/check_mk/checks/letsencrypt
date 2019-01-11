@@ -26,6 +26,10 @@
 
 
 # example output
+<<<letsencrypt:sep(0)>>>
+ example.org 57
+ xyz.example.org 57
+
 
 factory_settings["letsencrypt_default_levels"] = {
         "long"  : 1,
