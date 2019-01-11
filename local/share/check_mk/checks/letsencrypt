@@ -26,15 +26,16 @@
 
 
 # example output
-<<<letsencrypt:sep(0)>>>
- example.org 57
- xyz.example.org 57
-
+# <<<letsencrypt:sep(0)>>>
+#  example.org 89
+#  web.example.org 42
 
 factory_settings["letsencrypt_default_levels"] = {
-        "long"  : 1,
-        "short" : 2,
-                }
+        "long"        : (30),
+        "long_state"  : (1),
+        "short"       : (15),
+        "short_state" : (2),
+}
 
 def inventory_letsencrypt(info):
     for l in info:
@@ -48,13 +49,13 @@ def check_letsencrypt(item, params, info):
             if l.split(' ')[0] == item:
                 parsed = l.split(' ')[1]
                 if "EXPIRED" not in parsed:
-                    if ( int(parsed) <= 15 ):
-                        text = "Less then 15 days ( %s days ) remaining, before the certificate becomes invalid." % parsed 
-                        state = params["short"]
+                    if ( int(parsed) <= params["short"]):
+                        text = "Less then %s days ( %s days ) remaining, before the certificate becomes invalid." % (params["short"], parsed)
+                        state = params["short_state"]
                         yield state, text
-                    elif ( int(parsed) <= 30 ):
-                        text = "Less then 30 days ( %s days ) remaining, before the certificate becomes invalid." % parsed 
-                        state = params["long"]
+                    elif ( int(parsed) <= params["long"]):
+                        text = "Less then %s days ( %s days ) remaining, before the certificate becomes invalid." % (params["long"], parsed) 
+                        state = params["long_state"]
                         yield state, text
                     else:
                         text = "Still enough time ( %s days remaining )." % parsed
@@ -69,7 +70,7 @@ def check_letsencrypt(item, params, info):
 check_info['letsencrypt'] = {
     "inventory_function"      : inventory_letsencrypt,
     "check_function"          : check_letsencrypt,
-    "service_description"     : "Let's Encrypt cert",
+    "service_description"     : "Let's Encrypt Cert %s",
     "group"                   : "letsencrypt",
     "has_perfdata"            : False,
     "default_levels_variable" : "letsencrypt_default_levels",
