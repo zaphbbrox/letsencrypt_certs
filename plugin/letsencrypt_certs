@@ -43,9 +43,9 @@ def get_cert_names():
     cert_names = []
     expire_dates = []
     res = {}
-    for i in range(1,wcl,5):
+    for i in range(1,wcl,7):
         cert_names.append(result[i].split(':')[1])
-    for i in range(3,wcl,5):
+    for i in range(5,wcl,7):
         expire_date = result[i].split('(')[1][6:].split(' ')[1]
         expire_dates.append(expire_date)
 
